@@ -65,7 +65,6 @@ private:
 //    int right;    
 };
 
-
 int main()
 {
     pwm1_2.period_us(20000);
