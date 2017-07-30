@@ -22,13 +22,22 @@ int main() {
 //BusOut stepPins(PC_0, PC_1, PC_2, PC_3);
 DigitalIn powerbutton(PC_13), usEcho(PB_5), usEcho2(PA_6);
 DigitalOut in_1(PB_10), in_2(PA_8), in_3(PA_9), in_4(PC_7), green(PA_5), red(PB_9);
-
 PwmOut pwm1_2(PB_4), pwm3_4(PB_6), usTrig(PB_3), usTrig2(PA_7);
+
+//DigitalIn outR(D4), outM(D3), outL(D2);
+//DigitalOut in_1(PB_10), in_2(PA_8), in_3(PA_9), in_4(PC_7), g(PA_5);
+//PwmOut pwm1_2(PB_4), pwm3_4(PB_6);
 
 Timer A;
 
 int echo(void);
+int TurnRight;
 
+//void stopLF(void);
+//void forwardLF(void);
+//void backwardLF(void);
+//void rightLF(void);
+//void leftLF(void);
 
 class Motors {
 public:
@@ -96,7 +105,7 @@ int main()
         
         if (!powerbutton.read()) {  // user button to toggle power insead
             All_motors.power(); 
-            wait(.2);    
+            //wait(.2);    
         }
         
         if(obstical_range <= 30) {
@@ -139,12 +148,16 @@ int echo(void){         // the while in this function may cause the robot to sto
         distance2 = (time2/58);
         printf("D2 : %d\n", distance2);
         wait(0.2);
+        TurnRight=0;
+        //clockwise = 1;
         A.reset();
         return distance2;
     }else{
         distance = (time1/58);
         printf("D1 : %d\n",distance );
-        wait(0.2);
+        wait(0.2);      
+        TurnRight=1;
+        //clockwise = 1;
         A.reset();
         return distance;
     }
@@ -167,7 +180,7 @@ void Motors::tick(void) {
     if (poweroff){            //&& ((counter % delay) == 0)) {     // keep the poweroff varible
         if (clockwise) {
             forward();           
-           
+            printf("\ninside ticker F" );
            // stepPins.write(0x1 << (shift % 4));
 /*            in_1.write(0); 
             in_2.write(1);
@@ -176,8 +189,14 @@ void Motors::tick(void) {
 */
 
         }else{
-            left();
+            if (!TurnRight) {
+                left();
+                printf("\ninside ticker L" );
             
+            }else if(TurnRight){
+                right();
+                printf("\ninside ticker R" );
+            }
            // stepPins.write(0x8 >> (shift % 4));
 /*            in_1.write(1); 
             in_2.write(0);
@@ -203,7 +222,8 @@ void Motors::forward(void) {
     in_1.write(1); 
     in_2.write(0);
     in_3.write(0);
-    in_4.write(1); 
+    in_4.write(1);
+     
 }
 
 void Motors::backward(void) {
@@ -220,20 +240,24 @@ void Motors::backward(void) {
 void Motors::left(void) {
     pwm1_2.pulsewidth_us(15000);
     pwm3_4.pulsewidth_us(15000);
-    green.write(1);
+    //green.write(1);
+    in_1.write(1); 
+    in_2.write(0);
+    in_3.write(1);
+    in_4.write(0); 
+    wait(0.5);
+    //green.write(0);
+    clockwise = 1;
+}
+
+void Motors::right(void) {
+    pwm1_2.pulsewidth_us(15000);
+    pwm3_4.pulsewidth_us(15000);
     in_1.write(0); 
     in_2.write(1);
     in_3.write(0);
     in_4.write(1); 
     wait(0.5);
-    green.write(0);
     clockwise = 1;
-}
-
-void Motors::right(void) {
-    in_1.write(1); 
-    in_2.write(0);
-    in_3.write(0);
-    in_4.write(0); 
 }
 
