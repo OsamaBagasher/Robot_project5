@@ -319,8 +319,8 @@ void Motors::backwardLF(void) {
 }
 
 void Motors::leftLF(void) {
-    pwm1_2.pulsewidth_us(20000); //15000
-    pwm3_4.pulsewidth_us(5000); //15000
+    pwm1_2.pulsewidth_us(40000); //15000
+    pwm3_4.pulsewidth_us(10000); //15000
     in_1.write(0); //0
     in_2.write(1); //1
     in_3.write(0); //0
@@ -330,8 +330,8 @@ void Motors::leftLF(void) {
 }
 
 void Motors::rightLF(void) {
-    pwm1_2.pulsewidth_us(20000); //15000
-    pwm3_4.pulsewidth_us(5000); //15000
+    pwm1_2.pulsewidth_us(40000); //15000
+    pwm3_4.pulsewidth_us(10000); //15000
     in_1.write(1); //1
     in_2.write(0); //0
     in_3.write(1); //1
