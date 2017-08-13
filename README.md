@@ -24,7 +24,7 @@ DigitalIn powerbutton(PC_13), usEcho(PC_5), usEcho2(PA_6);
 DigitalOut in_1(PB_10), in_2(PA_8), in_3(PA_9), in_4(PC_7), green(PA_5), red(PB_9);
 PwmOut pwm1_2(PB_4), pwm3_4(PB_6), usTrig(PC_6), usTrig2(PA_7);
 
-DigitalIn outR(D4), outM(D3), outL(D2);
+DigitalIn outR(D2), outM(D3), outL(D4);             // looking from the back of the car
 //DigitalOut in_1(PB_10), in_2(PA_8), in_3(PA_9), in_4(PC_7), g(PA_5);
 //PwmOut pwm1_2(PB_4), pwm3_4(PB_6);
 
@@ -79,8 +79,8 @@ private:
 
 int main()
 {
-    pwm1_2.period_us(20000);
-    pwm3_4.period_us(20000);
+    //pwm1_2.period_us(20000);        // RIGHT WHEELS LOOKING FROM THE BACK
+    //pwm3_4.period_us(20000);
     usTrig.period_us(65535);
     usTrig2.period_us(65535);
     
@@ -188,78 +188,52 @@ int echo(void){         // the while in this function may cause the robot to sto
 void Motors::tick(void) {
 //    static int counter = 0, shift = 0;              // dont need shift and counter
     if (poweroff){            //&& ((counter % delay) == 0)) {     // keep the poweroff varible
-        
-    
         if (small_range){
-            if (!outR.read() && outM.read() && !outL.read()){
-                stopLF();
-                //printf("GO FORWARD\n");
-                }
-            if (outR.read() && !outM.read() && !outL.read()){
+            if (!outR.read() && !outM.read() && !outL.read() ){       // out of line 
+                if (clockwise) {        //if clockwise && distanse >10
+                    forward();           
+                    printf("\ninside ticker F" );
+                }else{
+                    if (!TurnRight) {
+                        left();
+                        printf("\ninside ticker L" );
+                    }else if(TurnRight){
+                        right();
+                        printf("\ninside ticker R" );
+                    } 
+                }           
+            }else if (outR.read() && (!outM.read()||outM.read()) && (!outL.read()||outL.read())){   //100,101,110,111
                 stopLF();
                 //printf("Turn Right\n");
-                }
-        
-            if (!outR.read() && !outM.read() && outL.read()){
+            }else if (!outR.read() && (!outM.read()|| outM.read()) && outL.read()){   //001, 011
                 stopLF();
-                //printf("Turn Left\n");
-            }
-        }else if (!outR.read() && !outM.read() && !outL.read() ){ 
-
-              
-            if (clockwise) {        //if clockwise && distanse >10
-                forward();           
-                printf("\ninside ticker F" );
-                
-                
-               // stepPins.write(0x1 << (shift % 4));
-    /*            in_1.write(0); 
-                in_2.write(1);
-                in_3.write(1);
-                in_4.write(0);  
-    */
-    
-            }else{
-                if (!TurnRight) {
-                    left();
-                    printf("\ninside ticker L" );
-                
-                }else if(TurnRight){
-                    right();
-                    printf("\ninside ticker R" );
-                }
-                
-                
-                
-                
-               // stepPins.write(0x8 >> (shift % 4));
-    /*            in_1.write(1); 
-                in_2.write(0);
-                in_3.write(0);
-                in_4.write(1);
-    */
+                //printf("Turn Left\n");    
+            }else if (!outR.read() && outM.read() && !outL.read()){   // 010
+                stopLF();
+                //printf("Turn Left\n");    
             }
         }else{
-            if (!outR.read() && outM.read() && !outL.read()){
+            if (!outR.read() && outM.read() && !outL.read()){       // when the R and L don't read black
                 forwardLF();
-                printf("GO FORWARD\n");
-                
-            }else if (outR.read() && !outM.read() && !outL.read()){
-                rightLF();
-                printf("Turn Right\n");
-  
-        
-            }else if (!outR.read() && !outM.read() && outL.read()){
+                printf("GO FORWARD\n");  
+            }else if (!outR.read() && !outM.read()|outM.read() && outL.read()){
                 leftLF();
+                printf("Turn Right\n");
+        
+            }else if (outR.read() && !outM.read()|outM.read() && !outL.read()){
+                rightLF();
                 printf("Turn Left\n");
             
             }else if (outR.read() && outM.read() && outL.read()){
-                stopLF();
+                stopLF();      //right chosen randomly
                 printf("STOP\n");
+            }else if (outR.read() && !outM.read() && outL.read()){
+                rightLF();         //right chosen randomly
+                //printf("STOP\n");
             }else {
                 printf("Nothing");
             }
-        }    
+        }
             
 //        shift++;
     } else if (poweroff == 0) {     // keep the poweroff varible
@@ -302,7 +276,7 @@ void Motors::left(void) {
     in_2.write(0);
     in_3.write(1);
     in_4.write(0); 
-    wait(0.5);
+    wait(0.2);
     //green.write(0);
     clockwise = 1;
 }
@@ -314,7 +288,7 @@ void Motors::right(void) {
     in_2.write(1);
     in_3.write(0);
     in_4.write(1); 
-    wait(0.5);
+    wait(0.2);
     clockwise = 1;
 }
 /////////// Linefollower/////////////////
@@ -327,8 +301,8 @@ void Motors::stopLF(void) {
 }
 
 void Motors::forwardLF(void) {
-    pwm1_2.pulsewidth_us(9500); //8000
-    pwm3_4.pulsewidth_us(3500); //8000
+    pwm1_2.pulsewidth_us(20000); //8000
+    pwm3_4.pulsewidth_us(5000); //8000
     in_1.write(1); 
     in_2.write(0);
     in_3.write(0);
@@ -345,21 +319,23 @@ void Motors::backwardLF(void) {
 }
 
 void Motors::leftLF(void) {
-    pwm1_2.pulsewidth_us(4000); //15000
-    pwm3_4.pulsewidth_us(9000); //15000
-    in_1.write(1); //0
-    in_2.write(0); //1
+    pwm1_2.pulsewidth_us(20000); //15000
+    pwm3_4.pulsewidth_us(5000); //15000
+    in_1.write(0); //0
+    in_2.write(1); //1
     in_3.write(0); //0
     in_4.write(1); //1
+    wait(0.05);
     //clockwise=1;
 }
 
 void Motors::rightLF(void) {
-    pwm1_2.pulsewidth_us(13000); //15000
-    pwm3_4.pulsewidth_us(4000); //15000
+    pwm1_2.pulsewidth_us(20000); //15000
+    pwm3_4.pulsewidth_us(5000); //15000
     in_1.write(1); //1
     in_2.write(0); //0
-    in_3.write(0); //1
-    in_4.write(1); //0
+    in_3.write(1); //1
+    in_4.write(0); //0
+    wait(0.05);
     //clockwise=1;
 }
